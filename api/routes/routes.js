@@ -5,13 +5,13 @@ module.exports = function (app) {
     var AuctionController = require('../controllers/AuctionController')
     var BidController = require('../controllers/BidController')
 
-    // Auction Routes    
-    app.get('/auction/:auctionID', AuctionController.getAuction)    
+    // Auction Routes
+    app.get('/auction/:auctionID', AuctionController.getAuction)
     app.post('/auction', AuctionController.createAuction)
     app.patch('/auction/:auctionID', AuctionController.updateAuctionParameter)
 
     // Bid Routes
-    app.get('/bid', BidController.getBidList)
+    app.get('/bid/:bidID', BidController.getBid)
     app.post('/bid', BidController.createBid)
 
     // prevent incorrect route to be called
