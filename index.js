@@ -8,22 +8,19 @@ var express = require('express'),
     Bid = require('./api/models/BidModel'),
     cronController = require('./api/controllers/CronController'),
     routes = require('./api/routes/routes'),
+    winston = require('./config/Logger'),
     port = process.env.PORT || 3030;
 
 // mongoose instance connection url connection
 mongoose.Promise = global.Promise
 mongoose
-    .connect('mongodb://mongo:27017/biddingService', {
+    .connect('mongodb://localhost/biddingService', {
+    // .connect('mongodb://mongo:27017/biddingService', {
         useCreateIndex: true,
         useNewUrlParser: true
     })
-    .then(() => console.log('MongoDB Connected'))
-    .catch(err => console.log(err));
-
-// mongoose.connect('mongodb://localhost/biddingService', {
-//     useCreateIndex: true,
-//     useNewUrlParser: true
-// });
+    .then(() => winston.debug('MongoDB Connected'))
+    .catch(err => winston.error(err));
 
 app.use(bodyParser.urlencoded({
     extended: true
@@ -42,4 +39,4 @@ cron.schedule("* * * * *", function() {
 // start to listen port
 app.listen(port);
 
-console.log('App running on port:' + port);
+winston.info('App running on port 3030');

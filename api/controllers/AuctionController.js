@@ -13,6 +13,11 @@ var mongoose = require('mongoose'),
  */
 exports.getAuction = function (req, res) {
     var parameter = req.params.auctionID;
+    var requestInfo = {
+        type: 'GET',
+        path: req.path,
+        body: null
+    };
 
     // if parameter == 'all'
     if (parameter == 'all') {
@@ -20,11 +25,14 @@ exports.getAuction = function (req, res) {
             var message, httpStatusCode;
             if (err) {
                 httpStatusCode = 404;
-                message = {Error: 'No auctions founded !'};
+                message = response.format(requestInfo, httpStatusCode, {
+                    Error: 'No auctions founded !'
+                });
             } else {
                 httpStatusCode = 200;
-                message = response.format(httpStatusCode, auctions);
+                message = response.format(requestInfo, httpStatusCode, auctions);
             }
+
 
             res.status(httpStatusCode).json(message).end();
         });
@@ -34,10 +42,12 @@ exports.getAuction = function (req, res) {
             var message, httpStatusCode;
             if (err) {
                 httpStatusCode = 404;
-                message = {Error: 'No auction found !'};
+                message = response.format(requestInfo, httpStatusCode, {
+                    Error: 'No auction found !'
+                });
             } else {
                 httpStatusCode = 200;
-                message = response.format(httpStatusCode, auction);
+                message = response.format(requestInfo, httpStatusCode, auction);
             }
 
             res.status(httpStatusCode).json(message).end();
@@ -55,14 +65,24 @@ exports.createAuction = function (req, res) {
     var end_time = new_auction.endTime.getTime();
     var current_time = new Date();
 
+    var requestInfo = {
+        type: 'POST',
+        path: req.path,
+        body: JSON.stringify(req.body)
+    };
+
     // validate start_time x end_time
-    if ( start_time >= end_time ) {
-        res.status(404).json({message: 'Start Time can\'t be equal or greatter than End Time'}).end();
-    } else if ( current_time.getTime() >= end_time ) {
-        res.status(404).json({message: 'End Time should be greatter than Current Time (now)'}).end();
+    if (start_time >= end_time) {
+        res.status(404).json({
+            message: 'Start Time can\'t be equal or greatter than End Time'
+        }).end();
+    } else if (current_time.getTime() >= end_time) {
+        res.status(404).json({
+            message: 'End Time should be greatter than Current Time (now)'
+        }).end();
     } else {
         // if start_time <= now() then status == ongoing
-        if ( start_time <= current_time.getTime() ) {
+        if (start_time <= current_time.getTime()) {
             new_auction.status = 'ongoing';
         }
 
@@ -72,10 +92,12 @@ exports.createAuction = function (req, res) {
 
             if (err) {
                 httpStatusCode = 500;
-                message = {Error: err.message};
+                message = response.format(requestInfo, httpStatusCode, {
+                    Error: err.message
+                });
             } else {
                 httpStatusCode = 201;
-                message = response.format(httpStatusCode, auction);
+                message = response.format(requestInfo, httpStatusCode, auction);
             }
 
             res.status(httpStatusCode).json(message).end();
@@ -90,6 +112,12 @@ exports.createAuction = function (req, res) {
 exports.updateAuctionParameter = function (req, res) {
     var parameter = req.params.auctionID;
 
+    var requestInfo = {
+        type: 'PATCH',
+        path: req.path,
+        body: JSON.stringify(req.body)
+    };
+
     Auction.findOneAndUpdate({
         _id: parameter
     }, req.body, {
@@ -98,10 +126,12 @@ exports.updateAuctionParameter = function (req, res) {
         var message, httpStatusCode
         if (err) {
             httpStatusCode = 500;
-            message = {Error: err.message};
+            message = response.format(requestInfo, httpStatusCode, {
+                Error: err.message
+            });
         } else {
             httpStatusCode = 200;
-            message = response.format(httpStatusCode, auction);
+            message = response.format(requestInfo, httpStatusCode, auction);
         }
 
         res.status(httpStatusCode).json(message).end();

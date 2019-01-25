@@ -14,7 +14,11 @@ var mongoose = require('mongoose'),
  */
 exports.getBid = function (req, res) {
     var parameter = req.params.bidID;
-
+    var requestInfo = {
+        type: 'GET',
+        path: req.path,
+        body: null
+    };
     // if parameter sent is 'all'
     // then return the list of bids
     if (parameter == 'all') {
@@ -23,12 +27,12 @@ exports.getBid = function (req, res) {
 
             if (err) {
                 httpStatusCode = 404;
-                message = {
+                response.format(requestInfo, httpStatusCode, {
                     Error: 'No Bids Founded !'
-                };
+                });
             } else {
                 httpStatusCode = 200;
-                message = response.format(httpStatusCode, bids);
+                message = response.format(requestInfo, httpStatusCode, bids);
             }
 
             res.status(httpStatusCode).json(message).end();
@@ -40,12 +44,12 @@ exports.getBid = function (req, res) {
 
             if (err) {
                 httpStatusCode = 404;
-                message = {
+                response.format(requestInfo, httpStatusCode, {
                     Error: 'No Bid Found !'
-                };
+                });
             } else {
                 httpStatusCode = 200;
-                message = response.format(httpStatusCode, bid);
+                message = response.format(requestInfo, httpStatusCode, bid);
             }
 
             res.status(httpStatusCode).json(message).end();
@@ -57,36 +61,48 @@ exports.getBid = function (req, res) {
  * Create new bid
  */
 exports.createBid = function (req, res) {
+    var message, httpStatusCode;
     var new_bid = new Bid(req.body);
-    console.log(new_bid);
+    var requestInfo = {
+        type: 'POST',
+        path: req.path,
+        body: JSON.stringify(req.body)
+    };
 
     // validate if auction exists before register a bid
     Auction.findById(new_bid.auctionID, function (err, auction) {
         if (err) {
-            res.status(404).json({
-                Error: 'No auction found to register a Bid'
-            }).end();
-        } else if (auction.status == 'pending') {
-            res.status(404).json({
-                Error: 'Auction didn\'t start yet and can\'t register a Bid'
-            }).end();
+            httpStatusCode = 404;
+            message = response.format(requestInfo, httpStatusCode, {
+                'Error': 'No auction found to register a Bid'
+            });
+
+            res.status(httpStatusCode).json(message).end();
+        } else if (auction.status == 'pending' || auction.status == 'finished' ) {
+            httpStatusCode = 404;
+            message = response.format(requestInfo, httpStatusCode, {
+                'Error': 'Can\'t register bid for auction: ' + auction._id + ' with status ' + auction.status
+            });
+
+            res.status(httpStatusCode).json(message).end();
         } else if (auction.startingPrice > new_bid.amount) {
-            res.status(404).json({
-                Error: 'Amount should be greather then Starting Price defined'
-            }).end();
+            httpStatusCode = 404;
+            message = response.format(requestInfo, httpStatusCode, {
+                'Error': 'Amount should be greather then Starting Price defined'
+            });
+
+            res.status(httpStatusCode).json(message).end();
         } else {
             // if auction exists then update the highestBid if necessary
             new_bid.save(function (err, bid) {
-                var message, httpStatusCode;
-
                 if (err) {
                     httpStatusCode = 500;
-                    message = {
+                    message = response.format(requestInfo, httpStatusCode, {
                         'Error': err.message
-                    };
+                    });
                 } else {
                     httpStatusCode = 201;
-                    message = response.format(httpStatusCode, bid);
+                    message = response.format(requestInfo, httpStatusCode, bid);
                     // verify the highest bid and update if necessary
                     registerHighestBid(bid);
                 }
@@ -97,6 +113,10 @@ exports.createBid = function (req, res) {
     });
 }
 
+/**
+ * Check the highest bid for an auction and update if necessary
+ * @param {*} bid
+ */
 function registerHighestBid(bid) {
     Bid.find({
         auctionID: bid.auctionID,
@@ -105,6 +125,7 @@ function registerHighestBid(bid) {
         }
     }, function (err, bids) {
         if (err) {
+            winston.error(err.message);
             res.status(500).json({
                 Error: err.message
             }).end();
