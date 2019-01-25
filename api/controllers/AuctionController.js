@@ -1,7 +1,8 @@
 'use strict'
 
 var mongoose = require('mongoose'),
-    Auction = mongoose.model('Auction')
+    Auction = mongoose.model('Auction'),
+    response = require('../helpers/ResponseHelper')
 
 // Get Auction from ID
 exports.getAuction = function (req, res) {
@@ -11,24 +12,30 @@ exports.getAuction = function (req, res) {
     // then return the list of auctions
     if (parameter == 'all') {
         Auction.find({}, null, {}, function(err, auctions) {
+            var message, httpStatusCode
             if (err) {
-                res.status(404).json({
-                    message: 'No Auctions founded'
-                }).end()
+                httpStatusCode = 404
+                message = response.format(httpStatusCode,{message: 'No auctions founded !'})
             } else {
-                res.status(200).json(auctions).end()
+                httpStatusCode = 200
+                message = response.format(httpStatusCode,auctions)
             }
+
+            res.status(httpStatusCode).json(message).end()
         })
     } else {
         // otherwise return the action according to the id sent
         Auction.findById(parameter, function (err, auction) {
+            var message, httpStatusCode
             if (err) {
-                res.status(404).json({
-                    message: 'Auction not found'
-                }).end()
+                httpStatusCode = 404
+                message = response.format(httpStatusCode,{message: 'No auction founded !'})
             } else {
-                res.status(200).json(auction).end()
+                httpStatusCode = 200
+                message = response.format(httpStatusCode,auction)
             }
+
+            res.status(httpStatusCode).json(message).end()
         })
     }
 }
@@ -38,13 +45,17 @@ exports.createAuction = function (req, res) {
     var new_auction = new Auction(req.body)
 
     new_auction.save(function (err, auction) {
+        var message, httpStatusCode
+
         if (err) {
-            res.status(500).json({
-                message: err.message
-            }).end()
+            httpStatusCode = 500
+            message = response.format(httpStatusCode,{message: err.message})
         } else {
-            res.status(201).json(auction).end()
+            httpStatusCode = 201
+            message = response.format(httpStatusCode,auction)
         }
+
+        res.status(httpStatusCode).json(message).end()
     })
 }
 
@@ -53,12 +64,15 @@ exports.updateAuctionParameter = function (req, res) {
     var parameter = req.params.auctionID
 
     Auction.findOneAndUpdate({_id:parameter}, req.body, {new: true}, function(err, auction) {
+        var message, httpStatusCode
         if (err) {
-            res.status(500).json({
-                message: err.message
-            }).end()
+            httpStatusCode = 500
+            message = response.format(httpStatusCode,{message: err.message})
         } else {
-            res.status(200).json(auction).end()
+            httpStatusCode = 200
+            message = response.format(httpStatusCode,auction)
         }
+
+        res.status(httpStatusCode).json(message).end()
     })
 }

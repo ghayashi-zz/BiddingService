@@ -1,7 +1,8 @@
 'use strict'
 
 var mongoose = require('mongoose'),
-    Bid = mongoose.model('Bid')
+    Bid = mongoose.model('Bid'),
+    response = require('../helpers/ResponseHelper')
 
 exports.getBid = function(req,res) {
     var parameter = req.params.bidID
@@ -10,24 +11,32 @@ exports.getBid = function(req,res) {
     // then return the list of bids
     if (parameter == 'all') {
         Bid.find({}, null, {}, function(err, bids) {
+            var message, httpStatusCode
+
             if (err) {
-                res.status(404).json({
-                    message: 'No Bids founded'
-                }).end()
+                httpStatusCode = 404
+                message = response.format(httpStatusCode,{message:'No Bids Founded !'})
             } else {
-                res.status(200).json(bids).end()
+                httpStatusCode = 200
+                message = response.format(httpStatusCode,bids)
             }
+
+            res.status(httpStatusCode).json(message).end()
         })
     } else {
         // otherwise return the bid according to the id sent
         Bid.findById(parameter, function (err, bid) {
+            var message, httpStatusCode
+
             if (err) {
-                res.status(404).json({
-                    message: 'Bid not found'
-                }).end()
+                httpStatusCode = 404
+                message = response.format(httpStatusCode,{message:'No Bid Found !'})
             } else {
-                res.status(200).json(bid).end()
+                httpStatusCode = 200
+                message = response.format(httpStatusCode,bids)
             }
+
+            res.status(httpStatusCode).json(message).end()
         })
     }
 }
@@ -36,12 +45,16 @@ exports.createBid = function(req,res) {
     var new_bid = new Bid(req.body)
 
     new_bid.save(function (err, bid) {
+        var message, httpStatusCode
+
         if (err) {
-            res.status(500).json({
-                message: err.message
-            }).end()
+            httpStatusCode = 500
+            message = response.format(httpStatusCode,{'message': err.message})
         } else {
-            res.status(201).json(bid).end()
+            httpStatusCode = 201
+            message = response.format(httpStatusCode,bids)
         }
+
+        res.status(httpStatusCode).json(message).end()
     })
 }
