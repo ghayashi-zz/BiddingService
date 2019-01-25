@@ -1,9 +1,8 @@
-'use strict'
+'use strict';
 
-var uuid = require('uuid')
+var uuid = require('uuid');
 
 exports.format = function(httpStatusCode,content, pagging = null) {
-    var httpStatusCode = 200
     var result = [{
         Meta: {
             status: httpStatusCode,
@@ -16,7 +15,7 @@ exports.format = function(httpStatusCode,content, pagging = null) {
             Limit: pagging != null && pagging.hasOwnProperty('limit') ? pagging.limit : 1
         },
         Results: [{content}]
-    }]
+    }];
 
-    return result
+    return result;
 }
