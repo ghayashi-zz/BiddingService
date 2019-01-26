@@ -15,7 +15,7 @@ var mongoose = require('mongoose'),
 exports.getBid = function (req, res) {
     var parameter = req.params.bidID;
     var requestInfo = {
-        type: 'GET',
+        type: req.method,
         path: req.path,
         body: null
     };
@@ -64,7 +64,7 @@ exports.createBid = function (req, res) {
     var message, httpStatusCode;
     var new_bid = new Bid(req.body);
     var requestInfo = {
-        type: 'POST',
+        type: req.method,
         path: req.path,
         body: JSON.stringify(req.body)
     };
@@ -78,7 +78,7 @@ exports.createBid = function (req, res) {
             });
 
             res.status(httpStatusCode).json(message).end();
-        } else if (auction.status == 'pending' || auction.status == 'finished' ) {
+        } else if (auction.status == 'pending' || auction.status == 'finished') {
             httpStatusCode = 404;
             message = response.format(requestInfo, httpStatusCode, {
                 'Error': 'Can\'t register bid for auction: ' + auction._id + ' with status ' + auction.status

@@ -14,14 +14,20 @@ var mongoose = require('mongoose'),
 exports.getAuction = function (req, res) {
     var parameter = req.params.auctionID;
     var requestInfo = {
-        type: 'GET',
-        path: req.path,
+        type: req.method,
+        path: req.url,
         body: null
     };
 
     // if parameter == 'all'
     if (parameter == 'all') {
-        Auction.find({}, null, {}, function (err, auctions) {
+        var size = !req.query.limit ? 10 : req.query.limit;
+        var offset = !req.query.offset ? 0 : req.query.offset;
+
+        Auction.find({}, null, {
+            limit: parseInt(size),
+            skip: parseInt(offset)
+        }, function (err, auctions) {
             var message, httpStatusCode;
             if (err) {
                 httpStatusCode = 404;
@@ -29,8 +35,13 @@ exports.getAuction = function (req, res) {
                     Error: 'No auctions founded !'
                 });
             } else {
+                var pagination = {
+                    limit: size,
+                    offset: offset
+                };
+
                 httpStatusCode = 200;
-                message = response.format(requestInfo, httpStatusCode, auctions);
+                message = response.format(requestInfo, httpStatusCode, auctions, pagination);
             }
 
 
@@ -66,7 +77,7 @@ exports.createAuction = function (req, res) {
     var current_time = new Date();
 
     var requestInfo = {
-        type: 'POST',
+        type: req.method,
         path: req.path,
         body: JSON.stringify(req.body)
     };
@@ -113,7 +124,7 @@ exports.updateAuctionParameter = function (req, res) {
     var parameter = req.params.auctionID;
 
     var requestInfo = {
-        type: 'PATCH',
+        type: req.method,
         path: req.path,
         body: JSON.stringify(req.body)
     };

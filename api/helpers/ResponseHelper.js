@@ -14,23 +14,20 @@ exports.format = function (requestInfo, httpStatusCode, content, pagging = null)
     var Pagination;
     if (pagging != null) {
         Pagination = {
-            Total: pagging != null && pagging.hasOwnProperty('total') ? pagging.total : 1,
-            Offset: pagging != null && pagging.hasOwnProperty('offset') ? pagging.offset : 1,
-            Limit: pagging != null && pagging.hasOwnProperty('limit') ? pagging.limit : 1
+            Offset: pagging.offset,
+            Limit: pagging.limit
         };
     }
 
     var result = [{
         Meta,
         Pagination,
-        Results: [{
-            content
-        }]
+        Results: content
     }];
 
     // adding logging
     var body = '';
-    if ( requestInfo.body != null ) {
+    if (requestInfo.body != null) {
         body = requestInfo.body
     }
 

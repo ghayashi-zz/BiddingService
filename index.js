@@ -15,7 +15,7 @@ var express = require('express'),
 mongoose.Promise = global.Promise
 mongoose
     .connect('mongodb://localhost/biddingService', {
-    // .connect('mongodb://mongo:27017/biddingService', {
+        // .connect('mongodb://mongo:27017/biddingService', {
         useCreateIndex: true,
         useNewUrlParser: true
     })
@@ -32,7 +32,7 @@ app.use(bodyParser.json());
 routes(app);
 
 // configure cron execution
-cron.schedule("* * * * *", function() {
+cron.schedule("* * * * *", function () {
     cronController.UpdateAuctions();
 });
 
